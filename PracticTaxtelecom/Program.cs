@@ -13,6 +13,9 @@ namespace PracticTaxtelecom
             string[] array = { "a", "abcdefae", "abcdE", "abckaf", "ТМовыц", "fffjjj" };
             string validChars = "abcdefghijklmnopqrstuvwxyz";
 
+            Console.WriteLine("Выберите алгоритм сортировки: 1 - Быстрая сортировка, 2 - Сортировка деревом");
+            int choice = int.Parse(Console.ReadLine());
+
             for (int i = 0; i < array.Length; i++)
             {
                 string invalidChars = new string(array[i].ToString().Where(c => !validChars.Contains(c)).Distinct().ToArray());
@@ -46,6 +49,17 @@ namespace PracticTaxtelecom
                     {
                         Console.WriteLine("Гласная подстрока не найдена.");
                     }
+
+                    char[] sortedArray = view.ToCharArray();
+                    if (choice == 1)
+                    {
+                        QuickSort(sortedArray, 0, sortedArray.Length - 1);
+                    }
+                    else
+                    {
+                        sortedArray = TreeSort(sortedArray);
+                    }
+                    Console.WriteLine("Отсортированная строка: " + new string(sortedArray));
                 }
                 
             }
@@ -97,6 +111,67 @@ namespace PracticTaxtelecom
                 }
             }
             return longestsubstring;
+        }
+        //Сортировки
+        static void QuickSort(char[] arr, int left, int right)
+        {
+            if (left < right)
+            {
+                int pivot = Partition(arr, left, right);
+                QuickSort(arr, left, pivot - 1);
+                QuickSort(arr, pivot + 1, right);
+            }
+        }
+
+        static int Partition(char[] arr, int left, int right)
+        {
+            char pivot = arr[right];
+            int i = left - 1;
+            for (int j = left; j < right; j++)
+            {
+                if (arr[j] < pivot)
+                {
+                    i++;
+                    (arr[i], arr[j]) = (arr[j], arr[i]);
+                }
+            }
+            (arr[i + 1], arr[right]) = (arr[right], arr[i + 1]);
+            return i + 1;
+        }
+
+        class TreeNode
+        {
+            public char Value;
+            public TreeNode Left, Right;
+            public TreeNode(char value) => Value = value;
+        }
+
+        static char[] TreeSort(char[] arr)
+        {
+            TreeNode root = null;
+            foreach (var item in arr)
+                root = Insert(root, item);
+            List<char> sortedList = new List<char>();
+            InOrderTraversal(root, sortedList);
+            return sortedList.ToArray();
+        }
+
+        static TreeNode Insert(TreeNode node, char value)
+        {
+            if (node == null) return new TreeNode(value);
+            if (value < node.Value) node.Left = Insert(node.Left, value);
+            else node.Right = Insert(node.Right, value);
+            return node;
+        }
+
+        static void InOrderTraversal(TreeNode node, List<char> list)
+        {
+            if (node != null)
+            {
+                InOrderTraversal(node.Left, list);
+                list.Add(node.Value);
+                InOrderTraversal(node.Right, list);
+            }
         }
     }
 }
