@@ -10,7 +10,7 @@ namespace PracticTaxtelecom
     {
         static void Main(string[] args)
         {
-            string[] array = { "a", "abcdef", "abcdE", "FbcJEkf0", "ТМовыц" };
+            string[] array = { "a", "abcdefae", "abcdE", "FbcJEkf0", "ТМовыц", "fffjjj" };
             string validChars = "abcdefghijklmnopqrstuvwxyz";
 
             for (int i = 0; i < array.Length; i++)
@@ -27,10 +27,12 @@ namespace PracticTaxtelecom
                     string second = array[i].Substring(array[i].Length / 2);
 
                     Console.WriteLine($"{ReverseString(first) + ReverseString(second)}");
+                    CountSymbol(array[i]);
                 }
                 else
                 {
                     Console.WriteLine($"{ReverseString(array[i]) + array[i]}");
+                    CountSymbol(array[i]);
                 }
             }
             Console.ReadKey();
@@ -40,6 +42,22 @@ namespace PracticTaxtelecom
             char[] chars = s.ToCharArray();
             Array.Reverse(chars);
             return new string(chars);
+        }
+        static void CountSymbol(string symbol)
+        {
+            Dictionary<char, int> dict = new Dictionary<char, int>();
+
+            foreach (char c in symbol)
+            {
+                if (dict.ContainsKey(c))
+                    dict[c]++;
+                else dict[c] = 1;
+            }
+            Console.WriteLine("Символы: ");
+            foreach (var c in dict)
+            {
+                Console.WriteLine($"{c.Key}: {c.Value}");
+            }
         }
     }
 }
