@@ -10,30 +10,44 @@ namespace PracticTaxtelecom
     {
         static void Main(string[] args)
         {
-            string[] array = { "a", "abcdefae", "abcdE", "FbcJEkf0", "ТМовыц", "fffjjj" };
+            string[] array = { "a", "abcdefae", "abcdE", "abckaf", "ТМовыц", "fffjjj" };
             string validChars = "abcdefghijklmnopqrstuvwxyz";
 
             for (int i = 0; i < array.Length; i++)
             {
                 string invalidChars = new string(array[i].ToString().Where(c => !validChars.Contains(c)).Distinct().ToArray());
-
                 if (invalidChars.Length > 0)
                 {
                     Console.WriteLine($"Неверные символы: {invalidChars}");
                 }
-                else if(array[i].Length % 2 == 0)
-                {
-                    string first = array[i].Substring(0, array[i].Length / 2);
-                    string second = array[i].Substring(array[i].Length / 2);
-
-                    Console.WriteLine($"{ReverseString(first) + ReverseString(second)}");
-                    CountSymbol(array[i]);
-                }
                 else
                 {
-                    Console.WriteLine($"{ReverseString(array[i]) + array[i]}");
-                    CountSymbol(array[i]);
+                    string view;
+                    if (array[i].Length % 2 == 0)
+                    {
+                        string first = array[i].Substring(0, array[i].Length / 2);
+                        string second = array[i].Substring(array[i].Length / 2);
+                        view = ReverseString(first) + ReverseString(second);
+                    }
+                    else
+                    {
+                        view = ReverseString(array[i]) + array[i];
+                        
+                    }
+                    Console.WriteLine(view);
+                    CountSymbol(view);
+
+                    string VowelMax = VowelVowel(ReverseString(view));
+                    if(!string.IsNullOrEmpty(VowelMax))
+                    {
+                        Console.WriteLine($"Наибольшая подстрока на гласные: {VowelMax}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Гласная подстрока не найдена.");
+                    }
                 }
+                
             }
             Console.ReadKey();
         }
@@ -58,6 +72,31 @@ namespace PracticTaxtelecom
             {
                 Console.WriteLine($"{c.Key}: {c.Value}");
             }
+        }
+        static string VowelVowel(string s)
+        {
+            string vowels = "aeiouy";
+            int maxLen = 0;
+            string longestsubstring = "";
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (vowels.Contains(s[i]))
+                {
+                    for (int j = i+1; j< s.Length; j++)
+                    {
+                        if (vowels.Contains(s[j]))
+                        {
+                            string view = s.Substring(i, j- i + 1);
+                            if(view.Length > maxLen)
+                            {
+                                maxLen = view.Length;
+                                longestsubstring = view;
+                            }
+                        }
+                    }
+                }
+            }
+            return longestsubstring;
         }
     }
 }
