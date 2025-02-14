@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,7 +11,7 @@ namespace PracticTaxtelecom
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             string[] array = { "a", "abcdefae", "abcdE", "abckaf", "ТМовыц", "fffjjj" };
             string validChars = "abcdefghijklmnopqrstuvwxyz";
@@ -60,8 +63,17 @@ namespace PracticTaxtelecom
                         sortedArray = TreeSort(sortedArray);
                     }
                     Console.WriteLine("Отсортированная строка: " + new string(sortedArray));
+
+                    int randomIndex = await GetRandomNumber(sortedArray.Length);
+
+                    if (randomIndex >= 0 && randomIndex < sortedArray.Length)
+                    {
+                        string stringMod = new string(sortedArray.Where((c, index) => index != randomIndex).ToArray());
+                        Console.WriteLine($"Строка после удаления символа на позиции {randomIndex}: {stringMod}");
+                    }
+
                 }
-                
+                Console.WriteLine();
             }
             Console.ReadKey();
         }
@@ -111,6 +123,27 @@ namespace PracticTaxtelecom
                 }
             }
             return longestsubstring;
+        }
+        //Запрос случайного числа API
+        static async Task<int> GetRandomNumber(int max)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string request = "http://www.randomnumberapi.com/api/v1.0/random?min=0&max=" + (max - 1) + "&count=1";
+                    HttpResponseMessage response = await client.GetAsync(request);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    int[] numbers = JsonConvert.DeserializeObject<int[]>(responseBody);
+                    return numbers?.Length > 0 ? numbers[0] : new Random().Next(0, max);
+                }
+                catch
+                {
+                    Console.WriteLine("Ошибка при получении случайного числа из API. Получаем число средствами .NET.");
+                    return new Random().Next(0, max);
+                }
+            }
         }
         //Сортировки
         static void QuickSort(char[] arr, int left, int right)
