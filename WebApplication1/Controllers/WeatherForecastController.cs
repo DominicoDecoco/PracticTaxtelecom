@@ -6,11 +6,23 @@ namespace WebApplication1.Controllers;
 [Route("[controller]")]
 public class StringProcessingController : ControllerBase
 {
+    private readonly IConfiguration _configuration;
+
+    public StringProcessingController(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     [HttpGet("process")]
     public IActionResult ProcessString([FromQuery] string input)
     {
         if (string.IsNullOrEmpty(input))
             return BadRequest(new { message = "Строка не должна быть пустой." });
+
+        var blackList = _configuration.GetSection("Settings:BlackList").Get<List<string>>() ?? new List<string>();
+
+        if (blackList.Any(word => input.Contains(word)))
+            return BadRequest(new { message = "Введённая строка содержит запрещённое слово." });
 
         string reversed = ReverseString(input);
         Dictionary<char, int> charCounts = CountSymbol(input);
