@@ -8,9 +8,14 @@ public class StringProcessingController : ControllerBase
 {
     private readonly IConfiguration _configuration;
 
+    private static int _currentRequests = 0;
+    private static SemaphoreSlim _semaphore;
+
     public StringProcessingController(IConfiguration configuration)
     {
         _configuration = configuration;
+        int parallelLimit = _configuration.GetValue<int>("Settings:ParallelLimit", 10); // Значение по умолчанию 10
+        _semaphore = new SemaphoreSlim(parallelLimit, parallelLimit);
     }
 
     [HttpGet("process")]
@@ -19,24 +24,36 @@ public class StringProcessingController : ControllerBase
         if (string.IsNullOrEmpty(input))
             return BadRequest(new { message = "Строка не должна быть пустой." });
 
-        var blackList = _configuration.GetSection("Settings:BlackList").Get<List<string>>() ?? new List<string>();
+        if (!_semaphore.Wait(0))
+            return StatusCode(503, new { message = "Сервис перегружен. Попробуйте позже." });
 
-        if (blackList.Any(word => input.Contains(word)))
-            return BadRequest(new { message = "Введённая строка содержит запрещённое слово." });
-
-        string reversed = ReverseString(input);
-        Dictionary<char, int> charCounts = CountSymbol(input);
-        string vowelSubstring = VowelVowel(input);
-        string sortedString = new string(QuickSort(input.ToCharArray()));
-
-        return Ok(new
+        Interlocked.Increment(ref _currentRequests);
+        try
         {
-            original = input,
-            reversed,
-            charCounts,
-            vowelSubstring,
-            sortedString
-        });
+            var blackList = _configuration.GetSection("Settings:BlackList").Get<List<string>>() ?? new List<string>();
+
+            if (blackList.Any(word => input.Contains(word)))
+                return BadRequest(new { message = "Введённая строка содержит запрещённое слово." });
+
+            string reversed = ReverseString(input);
+            Dictionary<char, int> charCounts = CountSymbol(input);
+            string vowelSubstring = VowelVowel(input);
+            string sortedString = new string(QuickSort(input.ToCharArray()));
+
+            return Ok(new
+            {
+                original = input,
+                reversed,
+                charCounts,
+                vowelSubstring,
+                sortedString
+            });
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _currentRequests);
+            _semaphore.Release();
+        }
     }
 
     private static string ReverseString(string s)
